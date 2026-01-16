@@ -149,7 +149,7 @@ impl<'a> AudioPortsRequestList<'a> {
 
     /// Returns an iterator over all requests in the list.
     pub fn iter(
-        &'a self,
+        &self,
     ) -> impl ExactSizeIterator<Item = AudioPortsRequest<'a>> + DoubleEndedIterator + 'a {
         IntoIterator::into_iter(self)
     }
