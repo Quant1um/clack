@@ -1,5 +1,7 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/prokopyl/clack/main/logo.svg")]
 
+#[cfg(feature = "ambisonic")]
+pub mod ambisonic;
 #[cfg(feature = "audio-ports")]
 pub mod audio_ports;
 #[cfg(feature = "audio-ports-activation")]
@@ -38,6 +40,8 @@ pub mod render;
 pub mod state;
 #[cfg(feature = "state-context")]
 pub mod state_context;
+#[cfg(feature = "surround")]
+pub mod surround;
 #[cfg(feature = "tail")]
 pub mod tail;
 #[cfg(feature = "thread-check")]

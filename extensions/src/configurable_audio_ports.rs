@@ -10,7 +10,7 @@ use clap_sys::ext::configurable_audio_ports::{
     clap_audio_port_configuration_request, clap_plugin_configurable_audio_ports,
 };
 use std::{
-    ffi::CStr,
+    ffi::{CStr, c_char, c_void},
     fmt::{self, Debug},
 };
 
@@ -54,7 +54,11 @@ impl<'a> AudioPortsRequestPort<'a> {
     /// Get the requested port type.
     pub fn port_type(&self) -> Option<AudioPortType<'a>> {
         match self {
-            AudioPortsRequestPort::Other(port_type) => *port_type,
+            AudioPortsRequestPort::Generic(port_type) => *port_type,
+            #[cfg(feature = "surround")]
+            AudioPortsRequestPort::Surround(..) => Some(AudioPortType::SURROUND),
+            #[cfg(feature = "ambisonic")]
+            AudioPortsRequestPort::Ambisonic(..) => Some(AudioPortType::AMBISONIC),
         }
     }
 }
@@ -68,11 +72,11 @@ pub struct AudioPortsRequest<'a> {
     /// The index of the port to configure.
     pub port_index: u32,
 
-    /// The number of channels requested.
-    pub channel_count: u32,
-
     /// The type of port requested and additional information (if applicable).
     pub port_info: AudioPortsRequestPort<'a>,
+
+    /// The channel count for the port.
+    pub channel_count: u32,
 }
 
 impl<'a> AudioPortsRequest<'a> {
@@ -85,8 +89,13 @@ impl<'a> AudioPortsRequest<'a> {
             Self {
                 is_input: raw.is_input,
                 port_index: raw.port_index,
+                port_info: AudioPortsRequestPort::from_raw(
+                    raw.port_type,
+                    raw.port_details,
+                    raw.channel_count,
+                ),
+
                 channel_count: raw.channel_count,
-                port_info: AudioPortsRequestPort::Other(AudioPortType::from_raw(raw.port_type)),
             }
         }
     }
