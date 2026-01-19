@@ -48,8 +48,11 @@ impl PluginAmbisonic {
     }
 }
 
+/// The host-side implementation of the Ambisonic extension.
 pub trait HostAmbisonicImpl {
     /// Notify the host that the ambisonic configuration for one or more ports has changed.
+    ///
+    /// The info can only change when the plugin is de-activated.
     fn changed(&mut self);
 }
 

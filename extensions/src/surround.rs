@@ -1,11 +1,16 @@
+//! This extension can be used to specify the surround channel mapping used by the plugin.
+
 use crate::audio_ports::AudioPortType;
 use clack_common::extensions::{Extension, HostExtensionSide, PluginExtensionSide, RawExtension};
 use clap_sys::ext::surround::*;
 use std::ffi::CStr;
 
+/// The Plugin-side of the Surround extension.
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
 pub struct PluginSurround(RawExtension<PluginExtensionSide, clap_plugin_surround>);
+
+/// The Host-side of the Surround extension.
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
 pub struct HostSurround(RawExtension<HostExtensionSide, clap_host_surround>);
@@ -32,53 +37,90 @@ unsafe impl Extension for HostSurround {
     }
 }
 
+/// A specific surround channel.
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SurroundChannel {
+    /// Front left speaker.
     FrontLeft = CLAP_SURROUND_FL as u8,
+    /// Front right speaker.
     FrontRight = CLAP_SURROUND_FR as u8,
+    /// Front center speaker.
     FrontCenter = CLAP_SURROUND_FC as u8,
+    /// Low frequency speaker (subwoofer).
     LowFrequency = CLAP_SURROUND_LFE as u8,
+    /// Back left speaker.
     BackLeft = CLAP_SURROUND_BL as u8,
+    /// Back right speaker.
     BackRight = CLAP_SURROUND_BR as u8,
+    /// Front center-left speaker.
     FrontLeftCenter = CLAP_SURROUND_FLC as u8,
+    /// Front center-right speaker.
     FrontRightCenter = CLAP_SURROUND_FRC as u8,
+    /// Back center speaker.
     BackCenter = CLAP_SURROUND_BC as u8,
+    /// Side left speaker.
     SideLeft = CLAP_SURROUND_SL as u8,
+    /// Side right speaker.
     SideRight = CLAP_SURROUND_SR as u8,
+    /// Top center speaker.
     TopCenter = CLAP_SURROUND_TC as u8,
+    /// Top front left speaker.
     TopFrontLeft = CLAP_SURROUND_TFL as u8,
+    /// Top front center speaker.
     TopFrontCenter = CLAP_SURROUND_TFC as u8,
+    /// Top front right speaker.
     TopFrontRight = CLAP_SURROUND_TFR as u8,
+    /// Top back left speaker.
     TopBackLeft = CLAP_SURROUND_TBL as u8,
+    /// Top back center speaker.
     TopBackCenter = CLAP_SURROUND_TBC as u8,
+    /// Top back right speaker.
     TopBackRight = CLAP_SURROUND_TBR as u8,
     // TopSideLeft = CLAP_SURROUND_TSL as u8,
     // TopSideRight = CLAP_SURROUND_TSR as u8,
 }
 
 bitflags::bitflags! {
-    /// Flags for surround layouts.
+    /// A mask containing multiple surround channels.
     #[repr(transparent)]
     #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct SurroundChannels: u64 {
+        /// See [`SurroundChannel::FrontLeft`].
         const FRONT_LEFT = 1u64 << CLAP_SURROUND_FL;
+        /// See [`SurroundChannel::FrontRight`].
         const FRONT_RIGHT = 1u64 << CLAP_SURROUND_FR;
+        /// See [`SurroundChannel::FrontCenter`].
         const FRONT_CENTER = 1u64 << CLAP_SURROUND_FC;
+        /// See [`SurroundChannel::LowFrequency`].
         const LOW_FREQUENCY = 1u64 << CLAP_SURROUND_LFE;
+        /// See [`SurroundChannel::BackLeft`].
         const BACK_LEFT = 1u64 << CLAP_SURROUND_BL;
+        /// See [`SurroundChannel::BackRight`].
         const BACK_RIGHT = 1u64 << CLAP_SURROUND_BR;
+        /// See [`SurroundChannel::FrontLeftCenter`].
         const FRONT_LEFT_CENTER = 1u64 << CLAP_SURROUND_FLC;
+        /// See [`SurroundChannel::FrontRightCenter`].
         const FRONT_RIGHT_CENTER = 1u64 << CLAP_SURROUND_FRC;
+        /// See [`SurroundChannel::BackCenter`].
         const BACK_CENTER = 1u64 << CLAP_SURROUND_BC;
+        /// See [`SurroundChannel::SideLeft`].
         const SIDE_LEFT = 1u64 << CLAP_SURROUND_SL;
+        /// See [`SurroundChannel::SideRight`].
         const SIDE_RIGHT = 1u64 << CLAP_SURROUND_SR;
+        /// See [`SurroundChannel::TopCenter`].
         const TOP_CENTER = 1u64 << CLAP_SURROUND_TC;
+        /// See [`SurroundChannel::TopFrontLeft`].
         const TOP_FRONT_LEFT = 1u64 << CLAP_SURROUND_TFL;
+        /// See [`SurroundChannel::TopFrontCenter`].
         const TOP_FRONT_CENTER = 1u64 << CLAP_SURROUND_TFC;
+        /// See [`SurroundChannel::TopFrontRight`].
         const TOP_FRONT_RIGHT = 1u64 << CLAP_SURROUND_TFR;
+        /// See [`SurroundChannel::TopBackLeft`].
         const TOP_BACK_LEFT = 1u64 << CLAP_SURROUND_TBL;
+        /// See [`SurroundChannel::TopBackCenter`].
         const TOP_BACK_CENTER = 1u64 << CLAP_SURROUND_TBC;
+        /// See [`SurroundChannel::TopBackRight`].
         const TOP_BACK_RIGHT = 1u64 << CLAP_SURROUND_TBR;
         // const TOP_SIDE_LEFT = 1u64 << CLAP_SURROUND_TSL;
         // const TOP_SIDE_RIGHT = 1u64 << CLAP_SURROUND_TSR;
@@ -86,6 +128,7 @@ bitflags::bitflags! {
 }
 
 impl AudioPortType<'static> {
+    /// Surround audio port type.
     pub const SURROUND: Self = AudioPortType(CLAP_PORT_SURROUND);
 }
 

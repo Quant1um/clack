@@ -11,6 +11,8 @@ use clap_sys::{ext::ambisonic::clap_ambisonic_config, plugin::clap_plugin};
 
 impl HostAmbisonic {
     /// Notify the host that the ambisonic configuration for one or more ports has changed.
+    ///
+    /// The info can only change when the plugin is de-activated.
     pub fn changed(&self, handle: &mut HostMainThreadHandle) {
         if let Some(changed) = handle.use_extension(&self.0).changed {
             // SAFETY: This type ensures the function pointer is valid.
@@ -19,6 +21,7 @@ impl HostAmbisonic {
     }
 }
 
+/// The plugin-side implementation of the Ambisonic extension.
 pub trait PluginAmbisonicImpl {
     /// Returns true if the given configuration is supported.
     fn is_config_supported(&self, config: AmbisonicConfig) -> bool;

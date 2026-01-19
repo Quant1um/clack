@@ -1,11 +1,18 @@
+// #![deny(missing_docs)]
+
+//! This extension can be used to specify the ambisonic channel mapping ([`AmbisonicConfig`]) used by the plugin.
+
 use crate::audio_ports::AudioPortType;
 use clack_common::extensions::{Extension, HostExtensionSide, PluginExtensionSide, RawExtension};
 use clap_sys::ext::ambisonic::*;
 use std::ffi::CStr;
 
+/// The Plugin-side of the Ambisonic extension.
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
 pub struct PluginAmbisonic(RawExtension<PluginExtensionSide, clap_plugin_ambisonic>);
+
+/// The Host-side of the Ambisonic extension.
 #[derive(Copy, Clone)]
 #[allow(dead_code)]
 pub struct HostAmbisonic(RawExtension<HostExtensionSide, clap_host_ambisonic>);
@@ -32,26 +39,39 @@ unsafe impl Extension for HostAmbisonic {
     }
 }
 
+/// Ambisonic data exchange format for an audio port.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct AmbisonicConfig {
+    /// The ambisonic channel ordering.
     pub ordering: AmbisonicOrdering,
+
+    /// The ambisonic normalization method.
     pub normalization: AmbisonicNormalization,
 }
 
+/// Component ordering for an ambisonic data exchange format.
 #[repr(u32)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum AmbisonicOrdering {
+    /// Furse-Malham channel ordering
     FuMa = CLAP_AMBISONIC_ORDERING_FUMA,
+    /// Ambisonic Channel Number ordering
     ACN = CLAP_AMBISONIC_ORDERING_ACN,
 }
 
+/// Normalization method for an ambisonic data exchange format.
 #[repr(u32)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum AmbisonicNormalization {
+    /// maxN normalization scheme
     MaxN = CLAP_AMBISONIC_NORMALIZATION_MAXN,
+    /// Schmidt semi-normalisation (3D)
     SN3D = CLAP_AMBISONIC_NORMALIZATION_SN3D,
+    /// Schmidt semi-normalisation (2D)
     SN2D = CLAP_AMBISONIC_NORMALIZATION_SN2D,
+    /// Full 3D normalization
     N3D = CLAP_AMBISONIC_NORMALIZATION_N3D,
+    /// Full 2D normalization
     N2D = CLAP_AMBISONIC_NORMALIZATION_N2D,
 }
 
@@ -103,6 +123,7 @@ impl AmbisonicNormalization {
 }
 
 impl AudioPortType<'static> {
+    /// Ambisonic audio port type.
     pub const AMBISONIC: Self = AudioPortType(CLAP_PORT_AMBISONIC);
 }
 

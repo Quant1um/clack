@@ -23,10 +23,10 @@ impl PluginSurround {
         }
     }
 
-    // Fills the given writer with the surround channel map for the given port, if applicable.
-    //
-    // You should write exactly `channel_count` channels to the writer. This function should only be
-    // called if the port its called for has `port_type` set to `SURROUND`.
+    /// Fills the given writer with the surround channel map for the given port, if applicable.
+    ///
+    /// You should write exactly `channel_count` channels to the writer. This function should only be
+    /// called if the port its called for has `port_type` set to `SURROUND`.
     pub fn get_channel_map<'a>(
         &self,
         handle: &mut PluginMainThreadHandle,
@@ -38,8 +38,11 @@ impl PluginSurround {
     }
 }
 
+/// The host-side implementation of the Surround extension.
 pub trait HostSurroundImpl {
     /// Notify the host that the surround configuration for one or more ports has changed.
+    ///
+    /// The channel map can only change when the plugin is de-activated.
     fn changed(&mut self);
 }
 

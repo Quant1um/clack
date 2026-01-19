@@ -7,6 +7,7 @@ use clack_plugin::{
 use clap_sys::{ext::surround::clap_plugin_surround, plugin::clap_plugin};
 use std::mem::MaybeUninit;
 
+/// A writer for surround channel maps.
 pub struct SurroundMapWriter<'a> {
     buf: &'a mut [MaybeUninit<SurroundChannel>],
     len: usize,
@@ -59,6 +60,7 @@ impl HostSurround {
     }
 }
 
+/// The plugin-side implementation of the Surround extension.
 pub trait PluginSurroundImpl {
     /// Returns true if the given surround channel mask is supported.
     fn is_channel_mask_supported(&mut self, mask: SurroundChannels) -> bool;

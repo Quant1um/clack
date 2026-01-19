@@ -10,8 +10,9 @@ use clap_sys::ext::configurable_audio_ports::{
     clap_audio_port_configuration_request, clap_plugin_configurable_audio_ports,
 };
 use std::{
-    ffi::{CStr, c_char, c_void},
+    ffi::{CStr, c_void},
     fmt::{self, Debug},
+    os::raw::c_char,
 };
 
 /// The Plugin-side of the Configurable Audio Ports extension.
@@ -40,25 +41,99 @@ unsafe impl Extension for PluginConfigurableAudioPorts {
 /// A port type and additional information for a configurable audio port request.
 pub enum AudioPortsRequestPort<'a> {
     /// A request for a port of a specific type with no additional information.
-    Other(Option<AudioPortType<'a>>),
-    // TODO: this enum could be used for future ambisonic/surround implementations (see port_details field in clap_audio_port_configuration_request)
+    Generic {
+        /// Requested port type.
+        port_type: Option<AudioPortType<'a>>,
+        /// Requested number of channels.
+        channels: u32,
+    },
+
+    /// A request for a surround audio port with specific channel layout.
+    #[cfg(feature = "surround")]
+    Surround {
+        /// Requested surround channel layout.
+        channels: &'a [crate::surround::SurroundChannel],
+    },
+
+    /// A request for an ambisonic audio port with specific ambisonic configuration.
+    #[cfg(feature = "ambisonic")]
+    Ambisonic {
+        /// Requested ambisonic configuration.
+        config: crate::ambisonic::AmbisonicConfig,
+        /// Requested number of channels.
+        channels: u32,
+    },
 }
 
 impl<'a> AudioPortsRequestPort<'a> {
     /// A request for a mono audio port.
-    pub const MONO: Self = AudioPortsRequestPort::Other(Some(AudioPortType::MONO));
+    pub const MONO: Self = AudioPortsRequestPort::Generic {
+        port_type: Some(AudioPortType::MONO),
+        channels: 1,
+    };
 
     /// A request for a stereo audio port.
-    pub const STEREO: Self = AudioPortsRequestPort::Other(Some(AudioPortType::STEREO));
+    pub const STEREO: Self = AudioPortsRequestPort::Generic {
+        port_type: Some(AudioPortType::STEREO),
+        channels: 2,
+    };
 
     /// Get the requested port type.
     pub fn port_type(&self) -> Option<AudioPortType<'a>> {
         match self {
-            AudioPortsRequestPort::Generic(port_type) => *port_type,
+            AudioPortsRequestPort::Generic { port_type, .. } => *port_type,
             #[cfg(feature = "surround")]
-            AudioPortsRequestPort::Surround(..) => Some(AudioPortType::SURROUND),
+            AudioPortsRequestPort::Surround { .. } => Some(AudioPortType::SURROUND),
             #[cfg(feature = "ambisonic")]
-            AudioPortsRequestPort::Ambisonic(..) => Some(AudioPortType::AMBISONIC),
+            AudioPortsRequestPort::Ambisonic { .. } => Some(AudioPortType::AMBISONIC),
+        }
+    }
+
+    /// Get the requested channel count.
+    pub fn channel_count(&self) -> u32 {
+        match self {
+            AudioPortsRequestPort::Generic { channels, .. } => *channels,
+            #[cfg(feature = "surround")]
+            AudioPortsRequestPort::Surround { channels } => channels.len() as u32,
+            #[cfg(feature = "ambisonic")]
+            AudioPortsRequestPort::Ambisonic { channels, .. } => *channels,
+        }
+    }
+
+    /// # Safety
+    /// The user must ensure the provided pointers are valid for the lifetime of `'a`.
+    /// Additionally, the `port_details` pointer must point to a valid structure
+    /// corresponding to the given `port_type` and `channel_count`.
+    pub(crate) unsafe fn from_raw(
+        port_type: *const c_char,
+        port_details: *const c_void,
+        channel_count: u32,
+    ) -> Self {
+        // SAFETY: Pointer validity ensured by the caller.
+        let port_type = unsafe { AudioPortType::from_raw(port_type) };
+
+        #[cfg(feature = "surround")]
+        if port_type == Some(AudioPortType::SURROUND) {
+            todo!()
+        }
+
+        #[cfg(feature = "ambisonic")]
+        if port_type == Some(AudioPortType::AMBISONIC) {
+            // SAFETY: Validity ensured by the caller.
+            let config =
+                unsafe { crate::ambisonic::AmbisonicConfig::from_raw(*(port_details as *const _)) };
+
+            if let Some(config) = config {
+                return Self::Ambisonic {
+                    config,
+                    channels: channel_count,
+                };
+            }
+        }
+
+        Self::Generic {
+            port_type,
+            channels: channel_count,
         }
     }
 }
@@ -74,9 +149,6 @@ pub struct AudioPortsRequest<'a> {
 
     /// The type of port requested and additional information (if applicable).
     pub port_info: AudioPortsRequestPort<'a>,
-
-    /// The channel count for the port.
-    pub channel_count: u32,
 }
 
 impl<'a> AudioPortsRequest<'a> {
@@ -94,8 +166,6 @@ impl<'a> AudioPortsRequest<'a> {
                     raw.port_details,
                     raw.channel_count,
                 ),
-
-                channel_count: raw.channel_count,
             }
         }
     }
@@ -105,7 +175,7 @@ impl<'a> AudioPortsRequest<'a> {
         clap_audio_port_configuration_request {
             is_input: self.is_input,
             port_index: self.port_index,
-            channel_count: self.channel_count,
+            channel_count: self.port_info.channel_count(),
             port_type: self
                 .port_info
                 .port_type()
@@ -158,7 +228,7 @@ impl<'a> AudioPortsRequestList<'a> {
 
     /// Returns an iterator over all requests in the list.
     pub fn iter(
-        &self,
+        &'a self,
     ) -> impl ExactSizeIterator<Item = AudioPortsRequest<'a>> + DoubleEndedIterator + 'a {
         IntoIterator::into_iter(self)
     }
