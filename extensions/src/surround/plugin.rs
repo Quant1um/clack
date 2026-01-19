@@ -60,13 +60,13 @@ impl HostSurround {
 }
 
 pub trait PluginSurroundImpl {
-    // Returns true if the given surround channel mask is supported.
+    /// Returns true if the given surround channel mask is supported.
     fn is_channel_mask_supported(&mut self, mask: SurroundChannels) -> bool;
 
-    // Fills the given writer with the surround channel map for the given port, if applicable.
-    //
-    // You should write exactly `channel_count` channels to the writer. This function should only be
-    // called if the port its called for has `port_type` set to `SURROUND`.
+    /// Fills the given writer with the surround channel map for the given port, if applicable.
+    ///
+    /// You should write exactly `channel_count` channels to the writer. This function should only be
+    /// called if the port it is called for has a [`SURROUND`](crate::audio_ports::AudioPortType::SURROUND) type.
     fn get_channel_map(&mut self, is_input: bool, port_index: u32, writer: &mut SurroundMapWriter);
 }
 

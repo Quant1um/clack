@@ -20,10 +20,10 @@ impl HostAmbisonic {
 }
 
 pub trait PluginAmbisonicImpl {
-    // Returns true if the given configuration is supported.
+    /// Returns true if the given configuration is supported.
     fn is_config_supported(&self, config: AmbisonicConfig) -> bool;
 
-    // Returns the ambisonic configuration for the given port, if applicable.
+    /// Returns the ambisonic configuration for the given port, if applicable.
     fn get_config(&self, is_input: bool, port_index: u32) -> Option<AmbisonicConfig>;
 }
 
